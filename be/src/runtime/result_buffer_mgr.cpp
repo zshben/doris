@@ -60,6 +60,7 @@ Status ResultBufferMgr::init() {
 Status ResultBufferMgr::create_sender(const TUniqueId& query_id, int buffer_size,
                                       std::shared_ptr<BufferControlBlock>* sender,
                                       int query_timeout) {
+    LOG(INFO) << "create sender for query " << query_id;
     *sender = find_control_block(query_id);
     if (*sender != nullptr) {
         LOG(WARNING) << "already have buffer control block for this instance " << query_id;
@@ -91,7 +92,7 @@ std::shared_ptr<BufferControlBlock> ResultBufferMgr::find_control_block(const TU
     if (_buffer_map.end() != iter) {
         return iter->second;
     }
-
+    LOG(INFO) << "could not find control block for query " << query_id;
     return std::shared_ptr<BufferControlBlock>();
 }
 
@@ -116,13 +117,14 @@ void ResultBufferMgr::fetch_data(const PUniqueId& finst_id, GetResultBatchCtx* c
         ctx->on_failure(Status::InternalError("no result for this query"));
         return;
     }
+    LOG(INFO) << "try to get batch for " << tid;
     cb->get_batch(ctx);
 }
 
 Status ResultBufferMgr::cancel(const TUniqueId& query_id) {
     std::lock_guard<std::mutex> l(_lock);
     BufferMap::iterator iter = _buffer_map.find(query_id);
-
+    LOG(INFO) << "begin to cancel query " << query_id;
     if (_buffer_map.end() != iter) {
         iter->second->cancel();
         _buffer_map.erase(iter);

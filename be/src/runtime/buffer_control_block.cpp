@@ -113,10 +113,12 @@ Status BufferControlBlock::add_batch(std::unique_ptr<TFetchDataResult>& result) 
     }
 
     if (_waiting_rpc.empty()) {
+        LOG(INFO) << "wait rpc is empty add to queue";
         _buffer_rows += num_rows;
         _batch_queue.push_back(std::move(result));
         _data_arrival.notify_one();
     } else {
+        LOG(INFO) << "wait rpc is not empty, call ctx directly";
         auto ctx = _waiting_rpc.front();
         _waiting_rpc.pop_front();
         ctx->on_data(result, _packet_num);
@@ -180,7 +182,7 @@ void BufferControlBlock::get_batch(GetResultBatchCtx* ctx) {
         _batch_queue.pop_front();
         _buffer_rows -= result->result_batch.rows.size();
         _data_removal.notify_one();
-
+        LOG(INFO) << "find data return";
         ctx->on_data(result, _packet_num);
         _packet_num++;
         return;
@@ -189,6 +191,7 @@ void BufferControlBlock::get_batch(GetResultBatchCtx* ctx) {
         ctx->on_close(_packet_num, _query_statistics.get());
         return;
     }
+    LOG(INFO) << "not data wait";
     // no ready data, push ctx to waiting list
     _waiting_rpc.push_back(ctx);
 }
