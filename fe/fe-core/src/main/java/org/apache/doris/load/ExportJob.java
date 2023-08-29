@@ -158,6 +158,7 @@ public class ExportJob implements Writable {
     private TableRef tableRef;
 
     private Expr whereExpr;
+    private String whereSql;
 
     private String sql = "";
 
