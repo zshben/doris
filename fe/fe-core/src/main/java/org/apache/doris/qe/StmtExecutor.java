@@ -1149,6 +1149,10 @@ public class StmtExecutor {
         if (parsedStmt instanceof InsertStmt) {
             ((InsertStmt) parsedStmt).getQueryStmt().resetSelectList();
         }
+
+        if (parsedStmt instanceof CreateTableAsSelectStmt) {
+            ((CreateTableAsSelectStmt) parsedStmt).getQueryStmt().resetSelectList();
+        }
     }
 
     // Because this is called by other thread
