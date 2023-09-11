@@ -180,7 +180,11 @@ public abstract class DataType implements AbstractDataType {
                     case 1:
                         return VarcharType.SYSTEM_DEFAULT;
                     case 2:
-                        return VarcharType.createVarcharType(Integer.parseInt(types.get(1)));
+                        if (types.get(1).equals("*")) {
+                            return VarcharType.SYSTEM_DEFAULT;
+                        } else {
+                            return VarcharType.createVarcharType(Integer.parseInt(types.get(1)));
+                        }
                     default:
                         throw new AnalysisException("Nereids do not support type: " + type);
                 }
@@ -190,7 +194,11 @@ public abstract class DataType implements AbstractDataType {
                     case 1:
                         return CharType.SYSTEM_DEFAULT;
                     case 2:
-                        return CharType.createCharType(Integer.parseInt(types.get(1)));
+                        if (types.get(1).equals("*")) {
+                            return CharType.SYSTEM_DEFAULT;
+                        } else {
+                            return CharType.createCharType(Integer.parseInt(types.get(1)));
+                        }
                     default:
                         throw new AnalysisException("Nereids do not support type: " + type);
                 }
