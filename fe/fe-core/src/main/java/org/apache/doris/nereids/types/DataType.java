@@ -138,8 +138,7 @@ public abstract class DataType implements AbstractDataType {
                         case 1:
                             return DecimalV3Type.SYSTEM_DEFAULT;
                         case 2:
-                            return DecimalV3Type
-                                    .createDecimalV3Type(Integer.parseInt(types.get(1)));
+                            return DecimalV3Type.createDecimalV3Type(Integer.parseInt(types.get(1)));
                         case 3:
                             return DecimalV3Type.createDecimalV3Type(Integer.parseInt(types.get(1)),
                                     Integer.parseInt(types.get(2)));
