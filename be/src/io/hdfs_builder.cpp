@@ -121,15 +121,15 @@ Status create_hdfs_builder(const THdfsParams& hdfsParams, const std::string& fs_
     } else if (hdfsParams.__isset.user) {
         hdfsBuilderSetUserName(builder->get(), hdfsParams.user.c_str());
 #ifdef USE_HADOOP_HDFS
-        hdfsBuilderSetKerb5Conf(builder->get(), nullptr);
-        hdfsBuilderSetKeyTabFile(builder->get(), nullptr);
+        // hdfsBuilderSetKerb5Conf(builder->get(), nullptr);
+        // hdfsBuilderSetKeyTabFile(builder->get(), nullptr);
 #endif
     }
     if (hdfsParams.__isset.hdfs_kerberos_keytab) {
         builder->need_kinit = true;
         builder->hdfs_kerberos_keytab = hdfsParams.hdfs_kerberos_keytab;
 #ifdef USE_HADOOP_HDFS
-        hdfsBuilderSetKeyTabFile(builder->get(), hdfsParams.hdfs_kerberos_keytab.c_str());
+        // hdfsBuilderSetKeyTabFile(builder->get(), hdfsParams.hdfs_kerberos_keytab.c_str());
 #endif
     }
     // set other conf
@@ -140,7 +140,7 @@ Status create_hdfs_builder(const THdfsParams& hdfsParams, const std::string& fs_
 #ifdef USE_HADOOP_HDFS
             // Set krb5.conf, we should define java.security.krb5.conf in catalog properties
             if (strcmp(conf.key.c_str(), "java.security.krb5.conf") == 0) {
-                hdfsBuilderSetKerb5Conf(builder->get(), conf.value.c_str());
+                // hdfsBuilderSetKerb5Conf(builder->get(), conf.value.c_str());
             }
 #endif
         }

@@ -43,10 +43,10 @@ std::string hdfs_error() {
     char buf[1024];
     ss << "(" << errno << "), " << strerror_r(errno, buf, 1024) << ")";
 #ifdef USE_HADOOP_HDFS
-    char* root_cause = hdfsGetLastExceptionRootCause();
-    if (root_cause != nullptr) {
-        ss << ", reason: " << root_cause;
-    }
+    // char* root_cause = hdfsGetLastExceptionRootCause();
+    // if (root_cause != nullptr) {
+    //     ss << ", reason: " << root_cause;
+    // }
 #else
     ss << ", reason: " << hdfsGetLastError();
 #endif

@@ -102,18 +102,18 @@ for preload_jar_dir in "${preload_jars[@]}"; do
     done
 done
 
-if [[ -d "${DORIS_HOME}/lib/hadoop_hdfs/" ]]; then
+if [[ -d "${DORIS_HOME}/lib/hadoop_tbds/" ]]; then
     # add hadoop libs
-    for f in "${DORIS_HOME}/lib/hadoop_hdfs/common"/*.jar; do
+    for f in "${DORIS_HOME}/lib/hadoop_tbds/share/hadoop/common"/*.jar; do
         DORIS_CLASSPATH="${DORIS_CLASSPATH}:${f}"
     done
-    for f in "${DORIS_HOME}/lib/hadoop_hdfs/common/lib"/*.jar; do
+    for f in "${DORIS_HOME}/lib/hadoop_tbds/share/hadoop/common/lib"/*.jar; do
         DORIS_CLASSPATH="${DORIS_CLASSPATH}:${f}"
     done
-    for f in "${DORIS_HOME}/lib/hadoop_hdfs/hdfs"/*.jar; do
+    for f in "${DORIS_HOME}/lib/hadoop_tbds/share/hadoop/hdfs"/*.jar; do
         DORIS_CLASSPATH="${DORIS_CLASSPATH}:${f}"
     done
-    for f in "${DORIS_HOME}/lib/hadoop_hdfs/hdfs/lib"/*.jar; do
+    for f in "${DORIS_HOME}/lib/hadoop_tbds/share/hadoop/lib"/*.jar; do
         DORIS_CLASSPATH="${DORIS_CLASSPATH}:${f}"
     done
 fi
@@ -133,9 +133,7 @@ fi
 # and conf/ dir so that hadoop libhdfs can read .xml config file in conf/
 export CLASSPATH="${DORIS_HOME}/conf/:${DORIS_CLASSPATH}:${CLASSPATH}"
 # DORIS_CLASSPATH is for self-managed jni
-export DORIS_CLASSPATH="-Djava.class.path=${DORIS_CLASSPATH}"
-
-export LD_LIBRARY_PATH="${DORIS_HOME}/lib/hadoop_hdfs/native:${LD_LIBRARY_PATH}"
+export DORIS_CLASSPATH="-Djava.class.path=${CLASSPATH}"
 
 jdk_version() {
     local java_cmd="${1}"
@@ -208,6 +206,24 @@ if [[ -z "${JAVA_HOME}" ]]; then
     echo "You can set it in be.conf"
     exit 1
 fi
+
+jvm_arch="amd64"
+MACHINE_TYPE=$(uname -m)
+if [[ "${MACHINE_TYPE}" == "aarch64" ]]; then
+    jvm_arch="aarch64"
+fi
+# JAVA_HOME is jre
+if [[ -d "$JAVA_HOME/jre"  ]]; then
+    export LD_LIBRARY_PATH=$JAVA_HOME/jre/lib/$jvm_arch/server:$JAVA_HOME/jre/lib/$jvm_arch:$LD_LIBRARY_PATH
+# JAVA_HOME is jdk
+else
+    export LD_LIBRARY_PATH=$JAVA_HOME/lib/$jvm_arch/server:$JAVA_HOME/lib/$jvm_arch:$LD_LIBRARY_PATH
+fi
+
+# tbds LD_LIBRARY_PATH
+export LD_LIBRARY_PATH="${DORIS_HOME}/lib/hadoop_tbds/lib/native/:$LD_LIBRARY_PATH"
+#export LD_LIBRARY_PATH="${DORIS_HOME}/lib/hadoop_hdfs/native:${LD_LIBRARY_PATH}"
+
 
 if [[ ! -d "${LOG_DIR}" ]]; then
     mkdir -p "${LOG_DIR}"
@@ -325,8 +341,8 @@ fi
 # set LIBHDFS_OPTS for hadoop libhdfs
 export LIBHDFS_OPTS="${final_java_opt}"
 
-#echo "CLASSPATH: ${CLASSPATH}"
-#echo "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}"
+echo "CLASSPATH: ${CLASSPATH}"
+echo "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}"
 #echo "LIBHDFS_OPTS: ${LIBHDFS_OPTS}"
 
 if [[ -z ${JEMALLOC_CONF} ]]; then

@@ -35,7 +35,6 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.CurrentNotificationEventId;
 import org.apache.hadoop.hive.metastore.api.NotificationEventResponse;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -232,7 +231,7 @@ public class HMSExternalCatalog extends ExternalCatalog {
         } catch (MetastoreNotificationFetchException e) {
             // Need a fallback to handle this because this error state can not be recovered until restarting FE
             if (StringUtils.isNotEmpty(e.getMessage())
-                        && e.getMessage().contains(HiveMetaStoreClient.REPL_EVENTS_MISSING_IN_METASTORE)) {
+                        && e.getMessage().contains("Notification events are missing in the meta store.")) {
                 refreshCatalog(hmsExternalCatalog);
                 // set lastSyncedEventId to currentEventId after refresh catalog successfully
                 lastSyncedEventId = currentEventId;

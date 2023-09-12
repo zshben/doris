@@ -421,6 +421,7 @@ include_directories(
     SYSTEM
     ${GENSRC_DIR}/
     ${THIRDPARTY_DIR}/include
+    ${THIRDPARTY_DIR}/../hadoop_tbds/include
     ${GPERFTOOLS_HOME}/include
 )
 
@@ -561,11 +562,16 @@ set(COMMON_THIRDPARTY
 )
 
 if ((ARCH_AMD64 OR ARCH_AARCH64) AND OS_LINUX)
-    add_library(hadoop_hdfs STATIC IMPORTED)
-    set_target_properties(hadoop_hdfs PROPERTIES IMPORTED_LOCATION ${THIRDPARTY_DIR}/lib/hadoop_hdfs/native/libhdfs.a)
+    add_library(hadoop_hdfs SHARED IMPORTED)
+    set_target_properties(hadoop_hdfs PROPERTIES IMPORTED_LOCATION ${THIRDPARTY_DIR}/../hadoop_tbds/lib/native/libhdfs.so)
+
+    add_library(jvm SHARED IMPORTED)
+    FILE(GLOB_RECURSE LIB_JVM $ENV{JAVA_HOME}/jre/lib/*/*/libjvm.so)
+    set_target_properties(jvm PROPERTIES IMPORTED_LOCATION ${LIB_JVM})
 
     set(COMMON_THIRDPARTY
         ${COMMON_THIRDPARTY}
+        jvm
         hadoop_hdfs
     )
     add_definitions(-DUSE_HADOOP_HDFS)

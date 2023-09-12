@@ -603,6 +603,7 @@ if [[ "${BUILD_FE}" -eq 1 ]]; then
     cp -r -p "${DORIS_HOME}/fe/fe-core/target/lib"/* "${DORIS_OUTPUT}/fe/lib"/
     cp -r -p "${DORIS_HOME}/fe/fe-core/target/doris-fe.jar" "${DORIS_OUTPUT}/fe/lib"/
     cp -r -p "${DORIS_HOME}/docs/build/help-resource.zip" "${DORIS_OUTPUT}/fe/lib"/
+    rm -f "${DORIS_OUTPUT}/fe/lib/servlet-api-2.5.jar"
     cp -r -p "${DORIS_HOME}/webroot/static" "${DORIS_OUTPUT}/fe/webroot"/
 
     cp -r -p "${DORIS_THIRDPARTY}/installed/webroot"/* "${DORIS_OUTPUT}/fe/webroot/static"/
@@ -635,6 +636,9 @@ if [[ "${OUTPUT_BE_BINARY}" -eq 1 ]]; then
     if [[ -f "${DORIS_THIRDPARTY}/installed/lib/libz.so" ]]; then
         cp -r -p "${DORIS_THIRDPARTY}/installed/lib/libz.so"* "${DORIS_OUTPUT}/be/lib/"
     fi
+
+    # tbds hadoop
+    cp -r -p "${DORIS_THIRDPARTY}/hadoop_tbds" "${DORIS_OUTPUT}/be/lib/"
 
     if [[ "${BUILD_BE_JAVA_EXTENSIONS_FALSE_IN_CONF}" -eq 1 ]]; then
         echo -e "\033[33;1mWARNNING: \033[37;1mDisable Java UDF support in be.conf due to the BE was built without Java UDF.\033[0m"

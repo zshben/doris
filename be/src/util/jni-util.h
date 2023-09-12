@@ -29,11 +29,6 @@
 #include "jni_md.h"
 #include "util/thrift_util.h"
 
-#ifdef USE_HADOOP_HDFS
-// defined in hadoop/hadoop-hdfs-project/hadoop-hdfs/src/main/native/libhdfs/jni_helper.c
-extern "C" JNIEnv* getJNIEnv(void);
-#endif
-
 namespace doris {
 class JniUtil;
 

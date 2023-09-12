@@ -23,11 +23,8 @@ import org.apache.doris.datasource.HMSClientException;
 import org.apache.doris.datasource.hive.event.MetastoreNotificationFetchException;
 import org.apache.doris.datasource.property.constants.HMSProperties;
 
-import com.aliyun.datalake.metastore.hive2.ProxyMetaStoreClient;
-import com.amazonaws.glue.catalog.metastore.AWSCatalogMetastoreClient;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import org.apache.hadoop.hive.common.ValidReadTxnList;
 import org.apache.hadoop.hive.common.ValidReaderWriteIdList;
 import org.apache.hadoop.hive.common.ValidTxnList;
 import org.apache.hadoop.hive.common.ValidTxnWriteIdList;
@@ -411,16 +408,8 @@ public class PooledHiveMetaStoreClient {
 
         private CachedClient(HiveConf hiveConf) throws MetaException {
             String type = hiveConf.get(HMSProperties.HIVE_METASTORE_TYPE);
-            if (HMSProperties.DLF_TYPE.equalsIgnoreCase(type)) {
-                client = RetryingMetaStoreClient.getProxy(hiveConf, DUMMY_HOOK_LOADER,
-                        ProxyMetaStoreClient.class.getName());
-            } else if (HMSProperties.GLUE_TYPE.equalsIgnoreCase(type)) {
-                client = RetryingMetaStoreClient.getProxy(hiveConf, DUMMY_HOOK_LOADER,
-                        AWSCatalogMetastoreClient.class.getName());
-            } else {
-                client = RetryingMetaStoreClient.getProxy(hiveConf, DUMMY_HOOK_LOADER,
-                        HiveMetaStoreClient.class.getName());
-            }
+            client = RetryingMetaStoreClient.getProxy(hiveConf, DUMMY_HOOK_LOADER,
+                    HiveMetaStoreClient.class.getName());
         }
 
         public void setThrowable(Throwable throwable) {

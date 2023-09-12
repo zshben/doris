@@ -195,7 +195,7 @@ under the License.
         <doris.home>${fe.dir}/../</doris.home>
         <revision>1.2-SNAPSHOT</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <doris.hive.catalog.shade.version>1.0.1</doris.hive.catalog.shade.version>
+        <doris.hive.catalog.shade.version>1.0.0-TBDS-SNAPSHOT</doris.hive.catalog.shade.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <!--plugin parameters-->
@@ -227,7 +227,7 @@ under the License.
         <junit.version>5.8.2</junit.version>
         <druid.version>1.2.5</druid.version>
         <clickhouse.version>0.4.6</clickhouse.version>
-        <thrift.version>0.16.0</thrift.version>
+        <thrift.version>0.13.0</thrift.version>
         <tomcat-embed-core.version>8.5.86</tomcat-embed-core.version>
         <log4j2.version>2.18.0</log4j2.version>
         <log4j-1.2.version>2.18.0</log4j-1.2.version>
@@ -275,7 +275,7 @@ under the License.
         <iceberg.version>1.1.0</iceberg.version>
         <maxcompute.version>0.43.3-public</maxcompute.version>
         <arrow.version>9.0.0</arrow.version>
-        <avro.version>1.11.1</avro.version>
+        <avro.version>1.8.2</avro.version>
         <!-- hudi -->
         <hudi.version>0.13.1</hudi.version>
         <presto.hadoop.version>2.7.4-11</presto.hadoop.version>
@@ -294,7 +294,7 @@ under the License.
         <aws-java-sdk.version>1.12.519</aws-java-sdk.version>
         <mariadb-java-client.version>3.0.4</mariadb-java-client.version>
         <dlf-metastore-client-hive.version>0.2.14</dlf-metastore-client-hive.version>
-        <hadoop.version>3.3.6</hadoop.version>
+        <hadoop.version>2.7.2-TBDS-5.2.0.1</hadoop.version>
         <joda.version>2.8.1</joda.version>
         <project.scm.id>github</project.scm.id>
         <spring.version>2.7.13</spring.version>
@@ -312,6 +312,9 @@ under the License.
         <!-- paimon -->
         <paimon.version>0.4.0-incubating</paimon.version>
         <disruptor.version>3.3.4</disruptor.version>
+
+        <tbds.hadoop.version>2.7.2-TBDS-5.2.0.1</tbds.hadoop.version>
+        <tbds.hive.version>2.2.0-TBDS-5.2.0.1</tbds.hive.version>
     </properties>
     <profiles>
         <profile>
@@ -336,6 +339,14 @@ under the License.
                 <repository>
                     <id>cloudera-public</id>
                     <url>https://repository.cloudera.com/artifactory/public/</url>
+                </repository>
+                <repository>
+                    <id>tencent-tbds</id>
+                    <url>https://tbdsrepo.cloud.tencent.com/repository/tbds/</url>
+                </repository>
+                <repository>
+                    <id>tencent-public</id>
+                    <url>https://tbdsrepo.cloud.tencent.com/repository/maven-public/</url>
                 </repository>
             </repositories>
             <pluginRepositories>
@@ -482,7 +493,7 @@ under the License.
             <dependency>
                 <groupId>org.apache.hadoop</groupId>
                 <artifactId>hadoop-client</artifactId>
-                <version>${hadoop.version}</version>
+                <version>${tbds.hadoop.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>javax.servlet</groupId>
@@ -493,12 +504,13 @@ under the License.
             <dependency>
                 <groupId>org.apache.hadoop</groupId>
                 <artifactId>hadoop-auth</artifactId>
-                <version>${hadoop.version}</version>
+                <version>${tbds.hadoop.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.hadoop</groupId>
                 <artifactId>hadoop-aliyun</artifactId>
-                <version>${hadoop.version}</version>
+                <version>2.10.2</version>
+                <scope>provided</scope>
                 <exclusions>
                     <!-- pls confirm if this is a mandatory dependency  -->
                     <exclusion>
@@ -1091,7 +1103,7 @@ under the License.
             <dependency>
                 <groupId>org.apache.hadoop</groupId>
                 <artifactId>hadoop-hdfs</artifactId>
-                <version>${hadoop.version}</version>
+                <version>${tbds.hadoop.version}</version>
                 <exclusions>
                     <exclusion>
                         <artifactId>servlet-api</artifactId>
@@ -1110,7 +1122,7 @@ under the License.
             <dependency>
                 <groupId>org.apache.hadoop</groupId>
                 <artifactId>hadoop-aws</artifactId>
-                <version>${hadoop.version}</version>
+                <version>3.3.5</version>
                 <exclusions>
                     <exclusion>
                         <groupId>org.slf4j</groupId>
@@ -1138,7 +1150,7 @@ under the License.
             <dependency>
                 <groupId>org.apache.hadoop</groupId>
                 <artifactId>hadoop-common</artifactId>
-                <version>${hadoop.version}</version>
+                <version>${tbds.hadoop.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>jdk.tools</groupId>
@@ -1160,12 +1172,16 @@ under the License.
                         <groupId>log4j</groupId>
                         <artifactId>log4j</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>javax.servlet</groupId>
+                        <artifactId>servlet-api</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.hadoop</groupId>
                 <artifactId>hadoop-mapreduce-client</artifactId>
-                <version>${hadoop.version}</version>
+                <version>${tbds.hadoop.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>javax.servlet</groupId>
@@ -1373,7 +1389,7 @@ under the License.
             <dependency>
                 <groupId>org.apache.hadoop</groupId>
                 <artifactId>hadoop-mapreduce-client-core</artifactId>
-                <version>${hadoop.version}</version>
+                <version>${tbds.hadoop.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>javax.servlet</groupId>
@@ -1388,7 +1404,7 @@ under the License.
             <dependency>
                 <groupId>org.apache.hadoop</groupId>
                 <artifactId>hadoop-mapreduce-client-common</artifactId>
-                <version>${hadoop.version}</version>
+                <version>${tbds.hadoop.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>io.netty</groupId>
@@ -1475,6 +1491,18 @@ under the License.
             <snapshots>
                 <updatePolicy>always</updatePolicy>
             </snapshots>
+        </repository>
+        <repository>
+            <id>tbds</id>
+            <url>https://tbdsrepo.cloud.tencent.com/repository/tbds/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </releases>
         </repository>
     </repositories>
 </project>
