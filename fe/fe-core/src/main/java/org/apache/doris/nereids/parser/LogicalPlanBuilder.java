@@ -27,6 +27,7 @@ import org.apache.doris.catalog.AggregateType;
 import org.apache.doris.catalog.KeysType;
 import org.apache.doris.common.Config;
 import org.apache.doris.common.DdlException;
+import org.apache.doris.common.FeConstants;
 import org.apache.doris.common.Pair;
 import org.apache.doris.nereids.DorisParser;
 import org.apache.doris.nereids.DorisParser.AggClauseContext;
@@ -1140,7 +1141,7 @@ public class LogicalPlanBuilder extends DorisParserBaseVisitor<Object> {
 
     @Override
     public Expression visitCast(DorisParser.CastContext ctx) {
-        List<String> types = typedVisit(ctx.dataType());
+        Pair<List<String>, Boolean> types = typedVisit(ctx.dataType());
         DataType dataType = DataType.convertPrimitiveFromStrings(types, true);
         Expression cast = ParserUtils.withOrigin(ctx, () ->
                 new Cast(getExpression(ctx.expression()), dataType));
@@ -1536,9 +1537,13 @@ public class LogicalPlanBuilder extends DorisParserBaseVisitor<Object> {
             keysType = KeysType.UNIQUE_KEYS;
         }
         String engineName = ctx.engine != null ? ctx.engine.getText().toLowerCase() : "olap";
-        DistributionDescriptor desc = new DistributionDescriptor(ctx.HASH() != null, ctx.AUTO() != null,
-                Integer.parseInt(ctx.INTEGER_VALUE().getText()),
-                ctx.HASH() != null ? visitIdentifierList(ctx.hashKeys) : null);
+        boolean isHash = ctx.HASH() != null || ctx.RANDOM() == null;
+        int bucketNum = FeConstants.default_bucket_num;
+        if (isHash && ctx.INTEGER_VALUE() != null) {
+            bucketNum = Integer.parseInt(ctx.INTEGER_VALUE().getText());
+        }
+        DistributionDescriptor desc = new DistributionDescriptor(isHash, ctx.AUTO() != null,
+                bucketNum, ctx.HASH() != null ? visitIdentifierList(ctx.hashKeys) : null);
         Map<String, String> properties = ctx.propertyClause() != null
                 ? visitPropertyClause(ctx.propertyClause()) : null;
         String partitionType = null;
@@ -2246,11 +2251,11 @@ public class LogicalPlanBuilder extends DorisParserBaseVisitor<Object> {
     }
 
     @Override
-    public List<String> visitPrimitiveDataType(PrimitiveDataTypeContext ctx) {
+    public Pair<List<String>, Boolean> visitPrimitiveDataType(PrimitiveDataTypeContext ctx) {
         String dataType = ctx.primitiveColType().type.getText().toLowerCase(Locale.ROOT);
         List<String> l = Lists.newArrayList(dataType);
         ctx.INTEGER_VALUE().stream().map(ParseTree::getText).forEach(l::add);
-        return l;
+        return Pair.of(l, ctx.primitiveColType().UNSIGNED() != null);
     }
 
     private Expression parseFunctionWithOrderKeys(String functionName, boolean isDistinct,

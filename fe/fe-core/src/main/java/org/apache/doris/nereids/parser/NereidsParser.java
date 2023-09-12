@@ -74,7 +74,7 @@ public class NereidsParser {
         return parse(expression, DorisParser::expression);
     }
 
-    public List<String> parseDataType(String dataType) {
+    public Pair<List<String>, Boolean> parseDataType(String dataType) {
         return parse(dataType, DorisParser::dataType);
     }
 

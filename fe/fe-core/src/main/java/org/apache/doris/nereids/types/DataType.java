@@ -20,6 +20,7 @@ package org.apache.doris.nereids.types;
 import org.apache.doris.catalog.ScalarType;
 import org.apache.doris.catalog.Type;
 import org.apache.doris.common.Config;
+import org.apache.doris.common.Pair;
 import org.apache.doris.nereids.annotation.Developing;
 import org.apache.doris.nereids.exceptions.AnalysisException;
 import org.apache.doris.nereids.parser.NereidsParser;
@@ -108,10 +109,11 @@ public abstract class DataType implements AbstractDataType {
      * NOTICE: only used in parser, if u want to convert string to type,
      * please use {@link this#convertFromString(String)}
      *
-     * @param types data type in string representation
+     * @param typesPair data type in string representation
      * @return data type in Nereids
      */
-    public static DataType convertPrimitiveFromStrings(List<String> types, boolean tryConvert) {
+    public static DataType convertPrimitiveFromStrings(Pair<List<String>, Boolean> typesPair, boolean tryConvert) {
+        List<String> types = typesPair.first;
         String type = types.get(0).toLowerCase().trim();
         switch (type) {
             case "bool":
@@ -123,7 +125,11 @@ public abstract class DataType implements AbstractDataType {
                 return SmallIntType.INSTANCE;
             case "integer":
             case "int":
-                return IntegerType.INSTANCE;
+                if (typesPair.second) {
+                    return BigIntType.INSTANCE;
+                } else {
+                    return IntegerType.INSTANCE;
+                }
             case "bigint":
                 return BigIntType.INSTANCE;
             case "largeint":
@@ -253,7 +259,7 @@ public abstract class DataType implements AbstractDataType {
      */
     public static DataType convertFromString(String type) {
         try {
-            List<String> types = PARSER.parseDataType(type);
+            Pair<List<String>, Boolean> types = PARSER.parseDataType(type);
             return DataType.convertPrimitiveFromStrings(types, false);
         } catch (Exception e) {
             // TODO: remove it when Nereids parser support array
