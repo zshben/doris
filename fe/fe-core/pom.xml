@@ -763,6 +763,13 @@ under the License.
             <groupId>org.immutables</groupId>
             <artifactId>value</artifactId>
         </dependency>
+
+        <!--  for delta lake catalog-->
+        <dependency>
+            <groupId>io.delta</groupId>
+            <artifactId>delta-core_2.12</artifactId>
+            <version>0.8.0</version>
+        </dependency>
     </dependencies>
     <repositories>
         <!-- for huawei obs sdk -->
