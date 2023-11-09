@@ -76,6 +76,7 @@ import org.apache.doris.nereids.types.DecimalV3Type;
 import org.apache.doris.nereids.types.DoubleType;
 import org.apache.doris.nereids.types.FloatType;
 import org.apache.doris.nereids.types.IntegerType;
+import org.apache.doris.nereids.types.JsonType;
 import org.apache.doris.nereids.types.LargeIntType;
 import org.apache.doris.nereids.types.NullType;
 import org.apache.doris.nereids.types.SmallIntType;
@@ -178,6 +179,8 @@ public class TypeCoercionUtils {
                 returnType = expected.defaultConcreteType();
             } else if (expected instanceof DateTimeType) {
                 returnType = DateTimeType.INSTANCE;
+            } else if (expected instanceof JsonType) {
+                returnType = JsonType.INSTANCE;
             }
         } else if (input.isDateType()) {
             if (expected instanceof DateTimeType) {
@@ -669,6 +672,10 @@ public class TypeCoercionUtils {
             Expression left, Expression right) {
         // same type
         if (left.getDataType().equals(right.getDataType())) {
+            if (!supportCompare(left.getDataType())) {
+                throw new AnalysisException("data type " + left.getDataType()
+                        + " could not used in ComparisonPredicate " + comparisonPredicate.toSql());
+            }
             return comparisonPredicate.withChildren(left, right);
         }
 
@@ -681,6 +688,10 @@ public class TypeCoercionUtils {
         Optional<DataType> commonType = findWiderTypeForTwoForComparison(
                 left.getDataType(), right.getDataType(), false);
         if (commonType.isPresent()) {
+            if (!supportCompare(commonType.get())) {
+                throw new AnalysisException("data type " + commonType.get()
+                        + " could not used in ComparisonPredicate " + comparisonPredicate.toSql());
+            }
             left = castIfNotSameType(left, commonType.get());
             right = castIfNotSameType(right, commonType.get());
         }
@@ -693,6 +704,10 @@ public class TypeCoercionUtils {
     public static Expression processInPredicate(InPredicate inPredicate) {
         if (inPredicate.getOptions().stream().map(Expression::getDataType)
                 .allMatch(dt -> dt.equals(inPredicate.getCompareExpr().getDataType()))) {
+            if (!supportCompare(inPredicate.getCompareExpr().getDataType())) {
+                throw new AnalysisException("data type " + inPredicate.getCompareExpr().getDataType()
+                        + " could not used in InPredicate " + inPredicate.toSql());
+            }
             return inPredicate;
         }
         Optional<DataType> optionalCommonType = TypeCoercionUtils.findWiderCommonTypeForComparison(
@@ -700,6 +715,11 @@ public class TypeCoercionUtils {
                         .stream()
                         .map(Expression::getDataType).collect(Collectors.toList()),
                 true);
+
+        if (optionalCommonType.isPresent() && !supportCompare(optionalCommonType.get())) {
+            throw new AnalysisException("data type " + optionalCommonType.get()
+                    + " could not used in InPredicate " + inPredicate.toSql());
+        }
 
         return optionalCommonType
                 .map(commonType -> {
@@ -1225,5 +1245,18 @@ public class TypeCoercionUtils {
         // multiply do not need to cast children to same type
         return binaryArithmetic.withChildren(castIfNotSameType(left, dt1),
                 castIfNotSameType(right, dt2));
+    }
+
+    private static boolean supportCompare(DataType dataType) {
+        if (!(dataType instanceof PrimitiveType)) {
+            return false;
+        }
+        if (dataType.isObjectType()) {
+            return false;
+        }
+        if (dataType instanceof JsonType) {
+            return false;
+        }
+        return true;
     }
 }

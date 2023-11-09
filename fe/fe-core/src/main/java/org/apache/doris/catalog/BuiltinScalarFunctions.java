@@ -180,6 +180,7 @@ import org.apache.doris.nereids.trees.expressions.functions.scalar.JsonbExtractB
 import org.apache.doris.nereids.trees.expressions.functions.scalar.JsonbExtractDouble;
 import org.apache.doris.nereids.trees.expressions.functions.scalar.JsonbExtractInt;
 import org.apache.doris.nereids.trees.expressions.functions.scalar.JsonbExtractIsnull;
+import org.apache.doris.nereids.trees.expressions.functions.scalar.JsonbExtractLargeint;
 import org.apache.doris.nereids.trees.expressions.functions.scalar.JsonbExtractString;
 import org.apache.doris.nereids.trees.expressions.functions.scalar.JsonbParse;
 import org.apache.doris.nereids.trees.expressions.functions.scalar.JsonbParseErrorToInvalid;
@@ -193,6 +194,7 @@ import org.apache.doris.nereids.trees.expressions.functions.scalar.JsonbParseNul
 import org.apache.doris.nereids.trees.expressions.functions.scalar.JsonbParseNullableErrorToNull;
 import org.apache.doris.nereids.trees.expressions.functions.scalar.JsonbParseNullableErrorToValue;
 import org.apache.doris.nereids.trees.expressions.functions.scalar.JsonbType;
+import org.apache.doris.nereids.trees.expressions.functions.scalar.JsonbValid;
 import org.apache.doris.nereids.trees.expressions.functions.scalar.LastDay;
 import org.apache.doris.nereids.trees.expressions.functions.scalar.Least;
 import org.apache.doris.nereids.trees.expressions.functions.scalar.Left;
@@ -518,26 +520,33 @@ public class BuiltinScalarFunctions implements FunctionHelper {
             scalar(JsonQuote.class, "json_quote"),
             scalar(JsonUnQuote.class, "json_unquote"),
             scalar(JsonExtract.class, "json_extract"),
-            scalar(JsonbExistsPath.class, "jsonb_exists_path"),
+            scalar(JsonbExistsPath.class, "json_exists_path", "jsonb_exists_path"),
             scalar(JsonbExtract.class, "jsonb_extract"),
-            scalar(JsonbExtractBigint.class, "jsonb_extract_bigint"),
-            scalar(JsonbExtractBool.class, "jsonb_extract_bool"),
-            scalar(JsonbExtractDouble.class, "jsonb_extract_double"),
-            scalar(JsonbExtractInt.class, "jsonb_extract_int"),
-            scalar(JsonbExtractIsnull.class, "jsonb_extract_isnull"),
-            scalar(JsonbExtractString.class, "jsonb_extract_string"),
-            scalar(JsonbParse.class, "jsonb_parse"),
-            scalar(JsonbParseErrorToInvalid.class, "jsonb_parse_error_to_invalid"),
-            scalar(JsonbParseErrorToNull.class, "jsonb_parse_error_to_null"),
-            scalar(JsonbParseErrorToValue.class, "jsonb_parse_error_to_value"),
-            scalar(JsonbParseNotnull.class, "jsonb_parse_notnull"),
-            scalar(JsonbParseNotnullErrorToInvalid.class, "jsonb_parse_notnull_error_to_invalid"),
-            scalar(JsonbParseNotnullErrorToValue.class, "jsonb_parse_notnull_error_to_value"),
-            scalar(JsonbParseNullable.class, "jsonb_parse_nullable"),
-            scalar(JsonbParseNullableErrorToInvalid.class, "jsonb_parse_nullable_error_to_invalid"),
-            scalar(JsonbParseNullableErrorToNull.class, "jsonb_parse_nullable_error_to_null"),
-            scalar(JsonbParseNullableErrorToValue.class, "jsonb_parse_nullable_error_to_value"),
-            scalar(JsonbType.class, "jsonb_type"),
+            scalar(JsonbExtractBigint.class, "json_extract_bigint", "jsonb_extract_bigint"),
+            scalar(JsonbExtractLargeint.class, "json_extract_largeint", "jsonb_extract_largeint"),
+            scalar(JsonbExtractBool.class, "json_extract_bool", "jsonb_extract_bool"),
+            scalar(JsonbExtractDouble.class, "json_extract_double", "jsonb_extract_double"),
+            scalar(JsonbExtractInt.class, "json_extract_int", "jsonb_extract_int"),
+            scalar(JsonbExtractIsnull.class, "json_extract_isnull", "jsonb_extract_isnull"),
+            scalar(JsonbExtractString.class, "json_extract_string", "jsonb_extract_string"),
+            scalar(JsonbParse.class, "json_parse", "jsonb_parse"),
+            scalar(JsonbParseErrorToInvalid.class, "json_parse_error_to_invalid", "jsonb_parse_error_to_invalid"),
+            scalar(JsonbParseErrorToNull.class, "json_parse_error_to_null", "jsonb_parse_error_to_null"),
+            scalar(JsonbParseErrorToValue.class, "json_parse_error_to_value", "jsonb_parse_error_to_value"),
+            scalar(JsonbParseNotnull.class, "json_parse_notnull", "jsonb_parse_notnull"),
+            scalar(JsonbParseNotnullErrorToInvalid.class,
+                    "json_parse_notnull_error_to_invalid", "jsonb_parse_notnull_error_to_invalid"),
+            scalar(JsonbParseNotnullErrorToValue.class,
+                    "json_parse_notnull_error_to_value", "jsonb_parse_notnull_error_to_value"),
+            scalar(JsonbParseNullable.class, "json_parse_nullable", "jsonb_parse_nullable"),
+            scalar(JsonbParseNullableErrorToInvalid.class,
+                    "json_parse_nullable_error_to_invalid", "jsonb_parse_nullable_error_to_invalid"),
+            scalar(JsonbParseNullableErrorToNull.class,
+                    "json_parse_nullable_error_to_null", "jsonb_parse_nullable_error_to_null"),
+            scalar(JsonbParseNullableErrorToValue.class,
+                    "json_parse_nullable_error_to_value", "jsonb_parse_nullable_error_to_value"),
+            scalar(JsonbValid.class, "json_valid", "jsonb_valid"),
+            scalar(JsonbType.class, "json_type", "jsonb_type"),
             scalar(JsonLength.class, "json_length"),
             scalar(JsonContains.class, "json_contains"),
             scalar(LastDay.class, "last_day"),
