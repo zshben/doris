@@ -61,6 +61,24 @@ public abstract class BaseAnalysisTask {
             + "${dataSizeFunction} AS data_size, "
             + "NOW() ";
 
+    protected static final String INSERT_TABLE_STATISTICS = "INSERT INTO "
+            + "${internalDB}.${columnStatTbl}"
+            + " SELECT "
+            + "CONCAT(${tblId}, '-', ${idxId}, '-', '${colId}') AS id, "
+            + "${catalogId} AS catalog_id, "
+            + "${dbId} AS db_id, "
+            + "${tblId} AS tbl_id, "
+            + "${idxId} AS idx_id, "
+            + "'${colId}' AS col_id, "
+            + "NULL AS part_id, "
+            + "COUNT(1) AS row_count, "
+            + "NDV(`${colName}`) AS ndv, "
+            + "SUM(CASE WHEN `${colName}` IS NULL THEN 1 ELSE 0 END) AS null_count, "
+            + "MIN(`${colName}`) AS min, "
+            + "MAX(`${colName}`) AS max, "
+            + "${dataSizeFunction} AS data_size, "
+            + "NOW() FROM `${dbName}`.`${tblName}`";
+
     protected static final String INSERT_COL_STATISTICS = "INSERT INTO "
             + "${internalDB}.${columnStatTbl}"
             + "    SELECT id, catalog_id, db_id, tbl_id, idx_id, col_id, part_id, row_count, "

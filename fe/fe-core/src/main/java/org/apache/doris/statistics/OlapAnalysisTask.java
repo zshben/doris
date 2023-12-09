@@ -17,7 +17,6 @@
 
 package org.apache.doris.statistics;
 
-import org.apache.doris.catalog.Partition;
 import org.apache.doris.common.FeConstants;
 import org.apache.doris.qe.AutoCloseConnectContext;
 import org.apache.doris.qe.QueryState;
@@ -28,11 +27,9 @@ import org.apache.doris.statistics.util.StatisticsUtil;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.text.StringSubstitutor;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Each task analyze one column.
@@ -67,30 +64,14 @@ public class OlapAnalysisTask extends BaseAnalysisTask {
         params.put("colName", String.valueOf(info.colName));
         params.put("tblName", String.valueOf(info.tblName));
         params.put("sampleExpr", getSampleExpression());
-        List<String> partitionAnalysisSQLs = new ArrayList<>();
         try {
             tbl.readLock();
-            Set<String> partNames = info.colToPartitions.get(info.colName);
-            for (String partName : partNames) {
-                Partition part = tbl.getPartition(partName);
-                if (part == null) {
-                    continue;
-                }
-                params.put("partId", String.valueOf(tbl.getPartition(partName).getId()));
-                // Avoid error when get the default partition
-                params.put("partName", "`" + partName + "`");
-                StringSubstitutor stringSubstitutor = new StringSubstitutor(params);
-                partitionAnalysisSQLs.add(stringSubstitutor.replace(ANALYZE_PARTITION_SQL_TEMPLATE));
-            }
+            StringSubstitutor stringSubstitutor = new StringSubstitutor(params);
+            String sql = stringSubstitutor.replace(INSERT_TABLE_STATISTICS);
+            execSQL(sql);
         } finally {
             tbl.readUnlock();
         }
-        execSQLs(partitionAnalysisSQLs);
-        params.remove("partId");
-        params.put("type", col.getType().toString());
-        StringSubstitutor stringSubstitutor = new StringSubstitutor(params);
-        String sql = stringSubstitutor.replace(ANALYZE_COLUMN_SQL_TEMPLATE);
-        execSQL(sql);
     }
 
     @VisibleForTesting
