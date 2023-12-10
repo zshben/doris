@@ -66,6 +66,6 @@ mv "${DOWNLOAD_DIR}/hadoop" "${TP_DIR}/hadoop_tbds"
 
 echo "Install jars..."
 mvn install:install-file -Dpackaging=jar -Dfile=${DOWNLOAD_DIR}/${HADOOP_SHADE} -DgroupId=org.apache.doris -DartifactId=tbds-hadoop-shade -Dversion=1.0.1-SNAPSHOT
-mvn install:install-file -Dpackaging=jar -Dfile=${DOWNLOAD_DIR}/${HIVE_SHADE} -DgroupId=org.apache.doris -DartifactId=hive-catalog-shade -Dversion=1.0.0-SNAPSHOT
+mvn install:install-file -Dpackaging=jar -Dfile=${DOWNLOAD_DIR}/${HIVE_SHADE} -DgroupId=org.apache.doris -DartifactId=hive-catalog-shade -Dversion=1.0.0-TBDS-SNAPSHOT
 
 echo "Finished"
