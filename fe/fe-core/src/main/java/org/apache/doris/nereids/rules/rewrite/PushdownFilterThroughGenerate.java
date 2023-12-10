@@ -35,8 +35,11 @@ public class PushdownFilterThroughGenerate extends OneRewriteRuleFactory {
     public Rule build() {
         return logicalFilter(logicalGenerate()).then(filter -> {
             LogicalGenerate<Plan> generate = filter.child();
-            return generate.withChildren(filter.withChildren(generate.children()));
+            if (generate.child().getOutputSet().containsAll(filter.getInputSlots())) {
+                return generate.withChildren(filter.withChildren(generate.children()));
+            } else {
+                return null;
+            }
         }).toRule(RuleType.PUSH_DOWN_FILTER_THROUGH_GENERATE);
     }
-
 }
