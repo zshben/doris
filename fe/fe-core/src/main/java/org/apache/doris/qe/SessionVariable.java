@@ -407,7 +407,6 @@ public class SessionVariable implements Serializable, Writable {
             SHOW_HIDDEN_COLUMNS
     );
 
-    public static final String QUERY_MAX_SCAN_BYTES = "query_max_scan_bytes";
     // session origin value
     public Map<Field, String> sessionOriginValue = new HashMap<Field, String>();
     // check stmt is or not [select /*+ SET_VAR(...)*/ ...]
@@ -1136,14 +1135,6 @@ public class SessionVariable implements Serializable, Writable {
 
     @VariableMgr.VarAttr(name = ENABLE_UNIQUE_KEY_PARTIAL_UPDATE, needForward = true)
     public boolean enableUniqueKeyPartialUpdate = false;
-
-    @VariableMgr.VarAttr(name = QUERY_MAX_SCAN_BYTES, needForward = true,
-            description = {"Query 在单个 BE 最大扫描的数据量, 单位字节",
-                    "Query largest scan bytes in single BE, Unit bytes"})
-    private long queryMaxScanBytes = -1;
-
-    @VariableMgr.VarAttr(name = "in_to_minmax_parition_rewrite_threshold", needForward = true)
-    public double inToMinmaxParitionRewriteThreshold = 0.2;
 
     // If this fe is in fuzzy mode, then will use initFuzzyModeVariables to generate some variables,
     // not the default value set in the code.
@@ -2247,7 +2238,6 @@ public class SessionVariable implements Serializable, Writable {
         tResult.setTruncateCharOrVarcharColumns(truncateCharOrVarcharColumns);
 
         tResult.setInvertedIndexConjunctionOptThreshold(invertedIndexConjunctionOptThreshold);
-        tResult.setQueryMaxScanBytes(queryMaxScanBytes);
 
         return tResult;
     }
@@ -2436,7 +2426,6 @@ public class SessionVariable implements Serializable, Writable {
         queryOptions.setScanQueueMemLimit(Math.min(maxScanQueueMemByte, maxExecMemByte / 20));
         queryOptions.setQueryTimeout(queryTimeoutS);
         queryOptions.setInsertTimeout(insertTimeoutS);
-        queryOptions.setQueryMaxScanBytes(queryMaxScanBytes);
         return queryOptions;
     }
 

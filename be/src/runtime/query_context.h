@@ -173,22 +173,6 @@ public:
 
     RuntimeFilterMgr* runtime_filter_mgr() { return _runtime_filter_mgr.get(); }
 
-    int64_t query_max_scan_bytes() const {
-        return _query_options.__isset.query_max_scan_bytes ? _query_options.query_max_scan_bytes
-                                                           : -1;
-    }
-
-    Status add_scan_bytes(uint64_t bytes) {
-        _scan_bytes.fetch_add(bytes, std::memory_order_relaxed);
-        if (query_max_scan_bytes() != -1 &&
-            _scan_bytes.load(std::memory_order_relaxed) > query_max_scan_bytes()) {
-            return Status::Cancelled(
-                    "Scan bytes: {} exceed session veriable query_max_scan_bytes: {}",
-                    _scan_bytes.load(std::memory_order_relaxed), query_max_scan_bytes());
-        }
-        return Status::OK();
-    }
-
 public:
     TUniqueId query_id;
     DescriptorTbl* desc_tbl;
@@ -242,7 +226,6 @@ private:
     taskgroup::TaskGroupPtr _task_group;
     std::unique_ptr<RuntimeFilterMgr> _runtime_filter_mgr;
     const TQueryOptions _query_options;
-    std::atomic<uint64_t> _scan_bytes {0};
 };
 
 } // namespace doris
