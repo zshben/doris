@@ -845,7 +845,7 @@ public class SessionVariable implements Serializable, Writable {
     private double broadcastHashtableMemLimitPercentage = 0.2;
 
     @VariableMgr.VarAttr(name = GENERATE_FUNCTION_ROWCOUNT_FACTOR, needForward = true)
-    private double generateFunctionRowCountFactor = 1;
+    private double generateFunctionRowCountFactor = 100000;
 
     @VariableMgr.VarAttr(name = ENABLE_RUNTIME_FILTER_PRUNE, needForward = true)
     public boolean enableRuntimeFilterPrune = false;
