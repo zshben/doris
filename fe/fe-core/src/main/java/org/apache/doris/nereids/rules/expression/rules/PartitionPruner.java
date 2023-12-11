@@ -45,7 +45,6 @@ import java.util.Objects;
 /**
  * PartitionPruner
  */
-@Data
 public class PartitionPruner extends DefaultExpressionRewriter<Void> {
     private final List<OnePartitionEvaluator> partitions;
     private final Expression partitionPredicate;
