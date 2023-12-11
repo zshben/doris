@@ -34,6 +34,7 @@ import org.apache.doris.nereids.trees.expressions.functions.scalar.BitmapContain
 import org.apache.doris.nereids.trees.plans.AbstractPlan;
 import org.apache.doris.nereids.trees.plans.JoinType;
 import org.apache.doris.nereids.trees.plans.Plan;
+import org.apache.doris.nereids.trees.plans.algebra.CatalogRelation;
 import org.apache.doris.nereids.trees.plans.logical.LogicalCTEConsumer;
 import org.apache.doris.nereids.trees.plans.physical.AbstractPhysicalJoin;
 import org.apache.doris.nereids.trees.plans.physical.PhysicalCTEConsumer;
@@ -59,6 +60,7 @@ import org.apache.doris.nereids.util.ExpressionUtils;
 import org.apache.doris.nereids.util.JoinUtils;
 import org.apache.doris.planner.RuntimeFilterId;
 import org.apache.doris.statistics.ColumnStatistic;
+import org.apache.doris.statistics.Statistics;
 import org.apache.doris.thrift.TRuntimeFilterType;
 
 import com.google.common.base.Preconditions;
@@ -97,6 +99,8 @@ public class RuntimeFilterGenerator extends PlanPostProcessor {
     );
 
     private final IdGenerator<RuntimeFilterId> generator = RuntimeFilterId.createGenerator();
+
+    private final Set<CatalogRelation> canNotBeTarget = new HashSet<>();
 
     /**
      * the runtime filter generator run at the phase of post process and plan translation of nereids planner.
@@ -222,6 +226,22 @@ public class RuntimeFilterGenerator extends PlanPostProcessor {
     }
 
     @Override
+    public PhysicalPlan visitPhysicalFilter(PhysicalFilter<? extends Plan> filter, CascadesContext context) {
+        filter.child().accept(this, context);
+        Statistics stats = filter.getStats();
+        if (stats == null) {
+            return filter;
+        }
+        if (stats.getRowCount() < 1024) {
+            // do not apply rf
+            if (filter.child() instanceof CatalogRelation) {
+                canNotBeTarget.add((CatalogRelation) filter.child());
+            }
+        }
+        return filter;
+    }
+
+    @Override
     public PhysicalPlan visitPhysicalProject(PhysicalProject<? extends Plan> project, CascadesContext context) {
         project.child().accept(this, context);
         Map<NamedExpression, Pair<PhysicalRelation, Slot>> aliasTransferMap
@@ -340,12 +360,14 @@ public class RuntimeFilterGenerator extends PlanPostProcessor {
                     && hasRemoteTarget(join, scan)) {
                 type = TRuntimeFilterType.BLOOM;
             }
-            long buildSideNdv = getBuildSideNdv(join, equalTo);
-            RuntimeFilter filter = new RuntimeFilter(generator.getNextId(),
-                    equalTo.right(), ImmutableList.of(olapScanSlot), type, exprOrder, join, buildSideNdv);
-            ctx.addJoinToTargetMap(join, olapScanSlot.getExprId());
-            ctx.setTargetExprIdToFilter(olapScanSlot.getExprId(), filter);
-            ctx.setTargetsOnScanNode(aliasTransferMap.get(unwrappedSlot).first.getRelationId(), olapScanSlot);
+            if (!canNotBeTarget.contains(scan)) {
+                long buildSideNdv = getBuildSideNdv(join, equalTo);
+                RuntimeFilter filter = new RuntimeFilter(generator.getNextId(),
+                        equalTo.right(), ImmutableList.of(olapScanSlot), type, exprOrder, join, buildSideNdv);
+                ctx.addJoinToTargetMap(join, olapScanSlot.getExprId());
+                ctx.setTargetExprIdToFilter(olapScanSlot.getExprId(), filter);
+                ctx.setTargetsOnScanNode(aliasTransferMap.get(unwrappedSlot).first.getRelationId(), olapScanSlot);
+            }
         }
     }
 
