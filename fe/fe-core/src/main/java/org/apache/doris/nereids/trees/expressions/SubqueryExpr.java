@@ -126,6 +126,4 @@ public abstract class SubqueryExpr extends Expression {
     }
 
     public abstract Expression withTypeCoercion(DataType dataType);
-
-    public abstract SubqueryExpr withSubquery(LogicalPlan subquery);
 }

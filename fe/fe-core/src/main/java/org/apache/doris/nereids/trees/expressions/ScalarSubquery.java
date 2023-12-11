@@ -77,9 +77,4 @@ public class ScalarSubquery extends SubqueryExpr implements LeafExpression {
                     ? Optional.of(queryPlan.getOutput().get(0))
                     : Optional.of(new Cast(queryPlan.getOutput().get(0), dataType)));
     }
-
-    @Override
-    public ScalarSubquery withSubquery(LogicalPlan subquery) {
-        return new ScalarSubquery(subquery, correlateSlots, typeCoercionExpr);
-    }
 }
