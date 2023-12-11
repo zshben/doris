@@ -243,6 +243,8 @@ public class SessionVariable implements Serializable, Writable {
     public static final String BROADCAST_RIGHT_TABLE_SCALE_FACTOR = "broadcast_right_table_scale_factor";
     public static final String BROADCAST_ROW_COUNT_LIMIT = "broadcast_row_count_limit";
 
+    public static final String GENERATE_FUNCTION_ROWCOUNT_FACTOR = "generate_function_rowcount_factor";
+
     // percentage of EXEC_MEM_LIMIT
     public static final String BROADCAST_HASHTABLE_MEM_LIMIT_PERCENTAGE = "broadcast_hashtable_mem_limit_percentage";
 
@@ -842,6 +844,9 @@ public class SessionVariable implements Serializable, Writable {
 
     @VariableMgr.VarAttr(name = BROADCAST_HASHTABLE_MEM_LIMIT_PERCENTAGE, needForward = true)
     private double broadcastHashtableMemLimitPercentage = 0.2;
+
+    @VariableMgr.VarAttr(name = GENERATE_FUNCTION_ROWCOUNT_FACTOR, needForward = true)
+    private double generateFunctionRowCountFactor = 1;
 
     @VariableMgr.VarAttr(name = ENABLE_RUNTIME_FILTER_PRUNE, needForward = true)
     public boolean enableRuntimeFilterPrune = false;
@@ -1671,6 +1676,10 @@ public class SessionVariable implements Serializable, Writable {
 
     public double getBroadcastRowCountLimit() {
         return broadcastRowCountLimit;
+    }
+
+    public double getGenerateFunctionRowCountFactor() {
+        return generateFunctionRowCountFactor;
     }
 
     public void setBroadcastRowCountLimit(double broadcastRowCountLimit) {

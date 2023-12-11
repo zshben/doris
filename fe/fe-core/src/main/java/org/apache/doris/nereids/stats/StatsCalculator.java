@@ -907,7 +907,8 @@ public class StatsCalculator extends DefaultPlanVisitor<Statistics, Void> {
 
     private Statistics computeGenerate(Generate generate) {
         Statistics stats = groupExpression.childStatistics(0);
-        double count = stats.getRowCount() * generate.getGeneratorOutput().size() * 100000;
+        double factor = Math.min(1, ConnectContext.get().getSessionVariable().getGenerateFunctionRowCountFactor());
+        double count = stats.getRowCount() * generate.getGeneratorOutput().size() * factor;
         Map<Expression, ColumnStatistic> columnStatsMap = Maps.newHashMap();
         for (Map.Entry<Expression, ColumnStatistic> entry : stats.columnStatistics().entrySet()) {
             ColumnStatistic columnStatistic = new ColumnStatisticBuilder(entry.getValue()).setCount(count).build();
