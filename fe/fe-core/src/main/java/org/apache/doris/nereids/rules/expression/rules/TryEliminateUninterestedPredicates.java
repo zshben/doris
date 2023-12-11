@@ -50,6 +50,9 @@ public class TryEliminateUninterestedPredicates extends DefaultExpressionRewrite
         this.expressionRewriteContext = new ExpressionRewriteContext(cascadesContext);
     }
 
+    /**
+     * rewrite
+     */
     public static Expression rewrite(Expression expression, Set<Slot> interestedSlots,
             CascadesContext cascadesContext) {
         // before eliminate uninterested predicate, we must push down `Not` under CompoundPredicate

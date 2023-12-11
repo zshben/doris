@@ -1142,6 +1142,9 @@ public class SessionVariable implements Serializable, Writable {
                     "Query largest scan bytes in single BE, Unit bytes"})
     private long queryMaxScanBytes = -1;
 
+    @VariableMgr.VarAttr(name = "in_to_minmax_parition_rewrite_threshold", needForward = true)
+    public double inToMinmaxParitionRewriteThreshold = 0.2;
+
     // If this fe is in fuzzy mode, then will use initFuzzyModeVariables to generate some variables,
     // not the default value set in the code.
     public void initFuzzyModeVariables() {
