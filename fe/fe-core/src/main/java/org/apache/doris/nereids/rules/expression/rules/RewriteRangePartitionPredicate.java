@@ -47,8 +47,7 @@ public class RewriteRangePartitionPredicate extends
 
     @Override
     public Expression visitInPredicate(InPredicate inPredicate, CascadesContext ctx) {
-        int maxInListSize = ctx.getConnectContext().getSessionVariable().maxInListSizeForRewrite;
-        if (inPredicate.getOptions().size() > maxInListSize) {
+        if (inPredicate.getOptions().size() > 10) {
             Expression opt0 = inPredicate.getOptions().get(0);
             if (opt0 instanceof DateLiteral || opt0 instanceof DateTimeLiteral) {
                 Literal minOpt = (Literal) inPredicate.getOptions().get(0);
