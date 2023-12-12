@@ -1139,6 +1139,9 @@ public class SessionVariable implements Serializable, Writable {
     @VariableMgr.VarAttr(name = "in_to_minmax_parition_rewrite_threshold", needForward = true)
     public double inToMinmaxParitionRewriteThreshold = 0.2;
 
+    @VariableMgr.VarAttr(name = "max_in_list_size_for_rewrite", needForward = true)
+    public int maxInListSizeForRewrite = 25;
+
     // If this fe is in fuzzy mode, then will use initFuzzyModeVariables to generate some variables,
     // not the default value set in the code.
     public void initFuzzyModeVariables() {
