@@ -17,11 +17,9 @@
 
 package org.apache.doris.nereids.rules.expression.rules;
 
-import org.apache.doris.analysis.LiteralExpr;
 import org.apache.doris.catalog.ListPartitionItem;
 import org.apache.doris.catalog.PartitionInfo;
 import org.apache.doris.catalog.PartitionItem;
-import org.apache.doris.catalog.PartitionKey;
 import org.apache.doris.catalog.RangePartitionItem;
 import org.apache.doris.nereids.CascadesContext;
 import org.apache.doris.nereids.trees.expressions.Cast;
@@ -118,12 +116,6 @@ public class PartitionPruner extends DefaultExpressionRewriter<Void> {
             PartitionTableType partitionTableType) {
         partitionPredicate = TryEliminateUninterestedPredicates.rewrite(
                 partitionPredicate, ImmutableSet.copyOf(partitionSlots), cascadesContext);
-        if (cascadesContext.getConnectContext().getSessionVariable().inToMinmaxParitionRewriteThreshold > 0
-                && canRewriteToMinMax(idToPartitions)) {
-            double rangeLength = totalRangeLength(idToPartitions);
-            partitionPredicate = rewritePartitionPredicateForRangePartition(
-                partitionPredicate, rangeLength, cascadesContext);
-        }
 
         List<OnePartitionEvaluator> evaluators = idToPartitions.entrySet()
                 .stream()
@@ -134,85 +126,6 @@ public class PartitionPruner extends DefaultExpressionRewriter<Void> {
         PartitionPruner partitionPruner = new PartitionPruner(evaluators, partitionPredicate);
         //TODO: we keep default partition because it's too hard to prune it, we return false in canPrune().
         return partitionPruner.prune();
-    }
-
-    private static boolean isRangePartition(Map<Long, PartitionItem> idToPartitions) {
-        if (idToPartitions.isEmpty()) {
-            return false;
-        }
-        PartitionItem item = idToPartitions.values().iterator().next();
-        return item instanceof RangePartitionItem;
-    }
-
-    private static boolean canRewriteToMinMax(Map<Long, PartitionItem> idToPartitions) {
-        if (isRangePartition(idToPartitions)) {
-            RangePartitionItem item = (RangePartitionItem) idToPartitions.values().iterator().next();
-            if (item == null) {
-                return false;
-            }
-            PartitionKey k1 = item.getItems().upperEndpoint();
-            if (k1.getKeys().size() != 1) {
-                return false; // multi keys or hive keys
-            }
-            LiteralExpr bound = k1.getKeys().get(0);
-            if (bound instanceof org.apache.doris.analysis.DateLiteral) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static double getUpperBoundFromRangePartitionItem(RangePartitionItem item) {
-        org.apache.doris.analysis.DateLiteral d1 =
-                (org.apache.doris.analysis.DateLiteral) item.getItems().upperEndpoint().getKeys().get(0);
-        return d1.getDouble();
-    }
-
-    private static double getLowerBoundFromRangePartitionItem(RangePartitionItem item) {
-        org.apache.doris.analysis.DateLiteral d1 =
-                (org.apache.doris.analysis.DateLiteral) item.getItems().lowerEndpoint().getKeys().get(0);
-        return d1.getDouble();
-    }
-
-    // for range partition, total range is from the end of the first partition to the beginning of the last partition
-    private static double totalRangeLength(Map<Long, PartitionItem> idToPartitions) {
-        if (idToPartitions.size() == 1) {
-            Long id = idToPartitions.keySet().iterator().next();
-            RangePartitionItem item = (RangePartitionItem) idToPartitions.get(id);
-            double d1 = getUpperBoundFromRangePartitionItem(item);
-            double d2 = getLowerBoundFromRangePartitionItem(item);
-            return Math.max(1, d1 - d2);
-        }
-
-        Long id = idToPartitions.keySet().iterator().next();
-        RangePartitionItem firstItem = (RangePartitionItem) idToPartitions.get(id);
-        RangePartitionItem lastItem = firstItem;
-        double min = getLowerBoundFromRangePartitionItem(firstItem);
-        double max = getUpperBoundFromRangePartitionItem(lastItem);
-        for (Long pid : idToPartitions.keySet()) {
-            RangePartitionItem item = (RangePartitionItem) idToPartitions.get(pid);
-            double lower = getLowerBoundFromRangePartitionItem(item);
-            if (lower < min) {
-                min = lower;
-                firstItem = item;
-            } else {
-                double upper = getUpperBoundFromRangePartitionItem(item);
-                if (upper > max) {
-                    max = upper;
-                    lastItem = item;
-                }
-            }
-        }
-        double endOfFirstItem = getUpperBoundFromRangePartitionItem(firstItem);
-        double beginOfLastItem = getLowerBoundFromRangePartitionItem(lastItem);
-        return Math.max(1, beginOfLastItem - endOfFirstItem);
-    }
-
-    private static Expression rewritePartitionPredicateForRangePartition(Expression partitionPredicate, double range,
-                                                                         CascadesContext ctx) {
-        partitionPredicate = OrToIn.INSTANCE.rewrite(partitionPredicate, null);
-        RewriteRangePartitionPredicate rewriter = new RewriteRangePartitionPredicate(range);
-        return partitionPredicate.accept(rewriter, ctx);
     }
 
     /**
