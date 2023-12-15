@@ -1000,6 +1000,15 @@ public class Auth implements Writable {
         }
     }
 
+    public int getParallelFragmentExecInstanceNum(String qualifiedUser) {
+        readLock();
+        try {
+            return propertyMgr.getParallelFragmentExecInstanceNum(qualifiedUser);
+        } finally {
+            readUnlock();
+        }
+    }
+
     public String[] getSqlBlockRules(String qualifiedUser) {
         readLock();
         try {
