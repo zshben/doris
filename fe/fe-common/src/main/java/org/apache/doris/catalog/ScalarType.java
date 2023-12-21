@@ -551,7 +551,7 @@ public class ScalarType extends Type {
             return "TIMEV2(" + scale + ")";
         } else if (type == PrimitiveType.VARCHAR) {
             if (isWildcardVarchar()) {
-                return "VARCHAR(*)";
+                return "VARCHAR(" + MAX_VARCHAR_LENGTH + ")";
             }
             return "VARCHAR(" + len + ")";
         } else if (type == PrimitiveType.STRING) {
@@ -567,7 +567,7 @@ public class ScalarType extends Type {
         StringBuilder stringBuilder = new StringBuilder();
         switch (type) {
             case CHAR:
-                if (isWildcardVarchar()) {
+                if (isWildcardChar()) {
                     stringBuilder.append("character");
                 } else if (Strings.isNullOrEmpty(lenStr)) {
                     stringBuilder.append("char").append("(").append(len).append(")");
@@ -577,7 +577,7 @@ public class ScalarType extends Type {
                 break;
             case VARCHAR:
                 if (isWildcardVarchar()) {
-                    stringBuilder.append("varchar(*)");
+                    stringBuilder.append("varchar(" + MAX_VARCHAR_LENGTH + ")");
                 } else if (Strings.isNullOrEmpty(lenStr)) {
                     stringBuilder.append("varchar").append("(").append(len).append(")");
                 } else {
