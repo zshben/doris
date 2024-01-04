@@ -60,6 +60,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 // When one client connect in, we create a connect context for it.
 // We store session information here. Meanwhile ConnectScheduler all
@@ -167,6 +168,8 @@ public class ConnectContext {
     private Map<String, String> resultAttachedInfo;
 
     private String workloadGroupName = "";
+
+    public UUID debugId = null;
 
     public void setUserQueryTimeout(int queryTimeout) {
         if (queryTimeout > 0) {

@@ -420,6 +420,7 @@ public class StmtExecutor {
         UUID uuid = UUID.randomUUID();
         TUniqueId queryId = new TUniqueId(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits());
         execute(queryId);
+        LOG.info("execute queryId {}, traceId {}", DebugUtil.printId(queryId), context.debugId);
     }
 
     public void execute(TUniqueId queryId) throws Exception {
@@ -528,6 +529,7 @@ public class StmtExecutor {
             }
             try {
                 ((Command) logicalPlan).run(context, this);
+                LOG.info("executeByNereids command run finished, traceId: {}", context.debugId);
             } catch (QueryStateException e) {
                 LOG.debug("DDL statement(" + originStmt.originStmt + ") process failed.", e);
                 context.setState(e.getQueryState());
@@ -552,6 +554,7 @@ public class StmtExecutor {
             planner = new NereidsPlanner(statementContext);
             try {
                 planner.plan(parsedStmt, context.getSessionVariable().toThrift());
+                LOG.info("executeByNereids plan finished, traceId: {}", context.debugId);
                 checkBlockRules();
             } catch (Exception e) {
                 LOG.debug("Nereids plan query failed:\n{}", originStmt.originStmt);
@@ -599,6 +602,7 @@ public class StmtExecutor {
                 LOG.error("query (id=" + DebugUtil.printId(queryId) + ") " + retMsg);
                 throw new UserException(retMsg);
             }
+            LOG.info("handleQueryWithRetry offer queryQueue finished, traceId: {}", context.debugId);
         }
 
         int retryTime = Config.max_query_retry_time;
@@ -664,6 +668,7 @@ public class StmtExecutor {
             }
             // support select hint e.g. select /*+ SET_VAR(query_timeout=1) */ sleep(3);
             analyzeVariablesInStmt();
+            LOG.info("executeByLegacy, traceId: {}", context.debugId);
 
             if (!context.isTxnModel()) {
                 Span queryAnalysisSpan =
@@ -671,6 +676,7 @@ public class StmtExecutor {
                 try (Scope ignored = queryAnalysisSpan.makeCurrent()) {
                     // analyze this query
                     analyze(context.getSessionVariable().toThrift());
+                    LOG.info("executeByLegacy analyze finished, traceId: {}", context.debugId);
                 } catch (Exception e) {
                     queryAnalysisSpan.recordException(e);
                     throw e;
@@ -686,6 +692,7 @@ public class StmtExecutor {
                                 + Env.getCurrentEnv().getSelfNode().getHost() + ") and failed to execute"
                                 + " because Master FE is not ready. You may need to check FE's status");
                     }
+                    LOG.info("executeByLegacy begin to forwardToMaster, traceId: {}", context.debugId);
                     forwardToMaster();
                     if (masterOpExecutor != null && masterOpExecutor.getQueryId() != null) {
                         context.setQueryId(masterOpExecutor.getQueryId());
@@ -697,6 +704,7 @@ public class StmtExecutor {
             } else {
                 analyzer = new Analyzer(context.getEnv(), context);
                 parsedStmt.analyze(analyzer);
+                LOG.info("executeByLegacy analyze finished, traceId: {}", context.debugId);
             }
 
             if (prepareStmt instanceof PrepareStmt && !isExecuteStmt) {
@@ -806,6 +814,7 @@ public class StmtExecutor {
                 }
             }
         }
+        LOG.info("executeByLegacy finished, traceId: {}", context.debugId);
     }
 
     private void syncJournalIfNeeded() throws Exception {
@@ -847,7 +856,7 @@ public class StmtExecutor {
 
     private void forwardToMaster() throws Exception {
         masterOpExecutor = new MasterOpExecutor(originStmt, context, redirectStatus, isQuery());
-        LOG.debug("need to transfer to Master. stmt: {}", context.getStmtId());
+        LOG.info("need to transfer to Master. stmt: {}", context.getStmtId());
         masterOpExecutor.execute();
         if (parsedStmt instanceof SetStmt) {
             SetStmt setStmt = (SetStmt) parsedStmt;
@@ -1386,6 +1395,7 @@ public class StmtExecutor {
         } finally {
             queryScheduleSpan.end();
         }
+        LOG.info("sendResult coord exec finished, traceId: {}", context.debugId);
         profile.getSummaryProfile().setQueryScheduleFinishTime();
         updateProfile(false);
         if (coord.getInstanceTotalNum() > 1 && LOG.isDebugEnabled()) {
@@ -1437,6 +1447,8 @@ public class StmtExecutor {
                     break;
                 }
             }
+
+            LOG.info("sendResult coord getNext finished, traceId: {}", context.debugId);
             if (cacheAnalyzer != null) {
                 if (cacheResult != null && cacheAnalyzer.getHitRange() == Cache.HitRange.Right) {
                     isSendFields =
@@ -1488,6 +1500,7 @@ public class StmtExecutor {
                 }
             }
         }
+        LOG.info("sendResult finished, traceId: {}", context.debugId);
     }
 
     private TWaitingTxnStatusResult getWaitingTxnStatus(TWaitingTxnStatusRequest request) throws Exception {
@@ -1934,7 +1947,7 @@ public class StmtExecutor {
 
     private void handlePrepareStmt() throws Exception {
         // register prepareStmt
-        LOG.debug("add prepared statement {}, isBinaryProtocol {}",
+        LOG.info("add prepared statement {}, isBinaryProtocol {}",
                         prepareStmt.getName(), prepareStmt.isBinaryProtocol());
         context.addPreparedStmt(prepareStmt.getName(),
                 new PrepareStmtContext(prepareStmt,

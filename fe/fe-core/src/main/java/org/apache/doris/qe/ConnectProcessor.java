@@ -372,6 +372,7 @@ public class ConnectProcessor {
             ending--;
         }
         String originStmt = new String(bytes, 1, ending, StandardCharsets.UTF_8);
+        LOG.info("handleQuery command begin {}, traceId: {}", originStmt, ctx.debugId);
 
         String sqlHash = DigestUtils.md5Hex(originStmt);
         ctx.setSqlHash(sqlHash);
@@ -393,8 +394,8 @@ public class ConnectProcessor {
                 LOG.debug("Nereids parse sql failed. Reason: {}. Statement: \"{}\".",
                         e.getMessage(), originStmt);
             }
+            LOG.info("handleQuery NereidsParser finished parse, traceId: {}", ctx.debugId);
         }
-
         // stmts == null when Nereids cannot planner this query or Nereids is disabled.
         if (stmts == null) {
             try {
@@ -590,13 +591,14 @@ public class ConnectProcessor {
     private void dispatch() throws IOException {
         int code = packetBuf.get();
         MysqlCommand command = MysqlCommand.fromCode(code);
+        ctx.debugId = UUID.randomUUID();
+        LOG.info("handle command {}, traceId: {}", command, ctx.debugId);
         if (command == null) {
             ErrorReport.report(ErrorCode.ERR_UNKNOWN_COM_ERROR);
             ctx.getState().setError(ErrorCode.ERR_UNKNOWN_COM_ERROR, "Unknown command(" + code + ")");
             LOG.warn("Unknown command(" + code + ")");
             return;
         }
-        LOG.debug("handle command {}", command);
         ctx.setCommand(command);
         ctx.setStartTime();
 
@@ -678,6 +680,7 @@ public class ConnectProcessor {
 
         MysqlChannel channel = ctx.getMysqlChannel();
         channel.sendAndFlush(packet);
+        LOG.info("finlizeCommand, traceId: {}", ctx.debugId);
         // note(wb) we should write profile after return result to mysql client
         // because write profile maybe take too much time
         // explain query stmt do not have profile
