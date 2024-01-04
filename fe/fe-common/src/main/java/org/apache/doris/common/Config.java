@@ -2175,4 +2175,9 @@ public class Config extends ConfigBase {
     })
     public static boolean ignore_unknown_metadata_module = false;
 
+    @ConfField(mutable = true, description = {
+            "是否开启服务端PreparedStatement",
+            "Whether to enable server side prepared statement"})
+    public static boolean enable_server_side_prepared_statement = false;
+
 }

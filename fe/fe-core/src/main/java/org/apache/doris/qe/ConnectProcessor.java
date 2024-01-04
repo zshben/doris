@@ -555,6 +555,38 @@ public class ConnectProcessor {
         ctx.getState().setEof();
     }
 
+    // reference https://dev.mysql.com/doc/dev/mysql-server/latest/page_protocol_command_phase_ps.html
+    private void handleServerSidePreparedStatmentCommand(
+                            MysqlCommand command) throws IOException {
+        switch (command) {
+            case COM_STMT_EXECUTE:
+                handleExecute();
+                break;
+            case COM_STMT_CLOSE:
+                handleStmtClose();
+                break;
+            case COM_STMT_RESET:
+                handleStmtReset();
+                break;
+            case COM_STMT_PREPARE:
+                ctx.initTracer("trace");
+                Span rootSpan = ctx.getTracer().spanBuilder("handleQuery").setNoParent().startSpan();
+                try (Scope scope = rootSpan.makeCurrent()) {
+                    handleQuery(command);
+                } catch (Exception e) {
+                    rootSpan.recordException(e);
+                    throw e;
+                } finally {
+                    rootSpan.end();
+                }
+                break;
+            default:
+                ctx.getState().setError(ErrorCode.ERR_UNKNOWN_COM_ERROR, "Unsupported command(" + command + ")");
+                LOG.warn("Unsupported command(" + command + ")");
+                break;
+        }
+    }
+
     private void dispatch() throws IOException {
         int code = packetBuf.get();
         MysqlCommand command = MysqlCommand.fromCode(code);
@@ -576,7 +608,6 @@ public class ConnectProcessor {
                 handleQuit();
                 break;
             case COM_QUERY:
-            case COM_STMT_PREPARE:
                 ctx.initTracer("trace");
                 Span rootSpan = ctx.getTracer().spanBuilder("handleQuery").setNoParent().startSpan();
                 try (Scope scope = rootSpan.makeCurrent()) {
@@ -588,22 +619,17 @@ public class ConnectProcessor {
                     rootSpan.end();
                 }
                 break;
-            case COM_STMT_EXECUTE:
-                handleExecute();
-                break;
             case COM_FIELD_LIST:
                 handleFieldList();
                 break;
             case COM_PING:
                 handlePing();
                 break;
-            case COM_STMT_RESET:
-                handleStmtReset();
-                break;
-            case COM_STMT_CLOSE:
-                handleStmtClose();
-                break;
             default:
+                if (Config.enable_server_side_prepared_statement) {
+                    handleServerSidePreparedStatmentCommand(command);
+                    break;
+                }
                 ctx.getState().setError(ErrorCode.ERR_UNKNOWN_COM_ERROR, "Unsupported command(" + command + ")");
                 LOG.warn("Unsupported command(" + command + ")");
                 break;
